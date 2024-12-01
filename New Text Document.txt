@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crossword Puzzle Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            font-size: 2.5rem;
+            color: #2980b9;
+        }
+
+        .crossword-container {
+            display: grid;
+            grid-template-columns: repeat(5, 40px);
+            grid-gap: 5px;
+            margin-bottom: 20px;
+        }
+
+        .cell {
+            width: 40px;
+            height: 40px;
+            background-color: #ecf0f1;
+            border: 1px solid #bdc3c7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            text-transform: uppercase;
+        }
+
+        .cell input {
+            width: 100%;
+            height: 100%;
+            border: none;
+            text-align: center;
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            outline: none;
+            background: none;
+        }
+
+        .cell input:focus {
+            background-color: #fff;
+            border: 2px solid #3498db;
+        }
+
+        .clues-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            margin-bottom: 30px;
+        }
+
+        .clue {
+            font-size: 1.2rem;
+            margin: 5px 0;
+            padding: 5px;
+        }
+
+        .clue span {
+            font-weight: bold;
+            color: #2980b9;
+        }
+
+        .button {
+            padding: 10px 20px;
+            background-color: #3498db;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .button:hover {
+            background-color: #2980b9;
+        }
+
+        .result {
+            font-size: 1.2rem;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Crossword Puzzle</h1>
+
+    <div class="crossword-container" id="crosswordGrid"></div>
+
+    <div class="clues-container">
+        <div class="clue"><span>1 Across:</span> A fruit with a yellow peel</div>
+        <div class="clue"><span>1 Down:</span> A color of the sky</div>
+        <div class="clue"><span>2 Across:</span> A green vegetable, often in salads</div>
+        <div class="clue"><span>2 Down:</span> The opposite of night</div>
+    </div>
+
+    <button class="button" id="checkButton">Check Answers</button>
+
+    <div class="result" id="result"></div>
+
+    <script>
+        // Crossword grid layout (letters are pre-filled)
+        const gridLayout = [
+            ['B', 'A', 'N', 'A', 'N'],
+            ['L', 'E', 'T', 'T', 'U'],
+            ['C', 'A', 'R', 'T', 'B'],
+            ['T', 'E', 'A', 'M', 'O'],
+            ['S', 'A', 'N', 'E', 'A']
+        ];
+
+        // Clues
+        const clues = {
+            across: {
+                1: 'A fruit with a yellow peel',
+                2: 'A green vegetable, often in salads'
+            },
+            down: {
+                1: 'A color of the sky',
+                2: 'The opposite of night'
+            }
+        };
+
+        // Create crossword grid
+        const crosswordGrid = document.getElementById('crosswordGrid');
+        const inputFields = [];
+
+        // Create the crossword puzzle with input fields
+        for (let row = 0; row < gridLayout.length; row++) {
+            for (let col = 0; col < gridLayout[row].length; col++) {
+                const cell = document.createElement('div');
+                cell.classList.add('cell');
+
+                const input = document.createElement('input');
+                input.maxLength = 1;
+                input.dataset.row = row;
+                input.dataset.col = col;
+                inputFields.push(input);
+                cell.appendChild(input);
+
+                crosswordGrid.appendChild(cell);
+            }
+        }
+
+        // Initialize grid with pre-filled values (locked cells)
+        for (let row = 0; row < gridLayout.length; row++) {
+            for (let col = 0; col < gridLayout[row].length; col++) {
+                const inputField = inputFields[row * 5 + col];
+                inputField.value = gridLayout[row][col] !== ' ' ? '' : null;
+                inputField.disabled = gridLayout[row][col] !== ' ';
+            }
+        }
+
+        // Check answers function
+        document.getElementById('checkButton').addEventListener('click', function() {
+            let correctAnswers = 0;
+
+            // Check across answers
+            correctAnswers += checkAcrossAnswers();
+
+            // Check down answers
+            correctAnswers += checkDownAnswers();
+
+            // Show the result
+            if (correctAnswers === 4) {
+                document.getElementById('result').textContent = 'Congratulations! You completed the crossword correctly.';
+                document.getElementById('result').style.color = '#27ae60';
+            } else {
+                document.getElementById('result').textContent = 'Some answers are incorrect, try again.';
+                document.getElementById('result').style.color = '#e74c3c';
+            }
+        });
+
+        // Check across answers
+        function checkAcrossAnswers() {
+            let correct = 0;
+            const acrossAnswers = {
+                1: 'BANANA',
+                2: 'CART'
+            };
+
+            Object.keys(acrossAnswers).forEach((key) => {
+                const answer = acrossAnswers[key];
+                let userAnswer = '';
+                for (let i = 0; i < answer.length; i++) {
+                    const inputField = inputFields[parseInt(key) * 5 + i];
+                    userAnswer += inputField.value.toUpperCase();
+                }
+
+                if (userAnswer === answer) {
+                    correct++;
+                }
+            });
+
+            return correct;
+        }
+
+        // Check down answers
+        function checkDownAnswers() {
+            let correct = 0;
+            const downAnswers = {
+                1: 'BLUE',
+                2: 'DAY'
+            };
+
+            Object.keys(downAnswers).forEach((key) => {
+                const answer = downAnswers[key];
+                let userAnswer = '';
+                for (let i = 0; i < answer.length; i++) {
+                    const inputField = inputFields[i * 5 + parseInt(key) - 1];
+                    userAnswer += inputField.value.toUpperCase();
+                }
+
+                if (userAnswer === answer) {
+                    correct++;
+                }
+            });
+
+            return correct;
+        }
+    </script>
+
+</body>
+</html>

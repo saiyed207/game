@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simon Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #2c3e50;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+        }
+
+        .container {
+            text-align: center;
+        }
+
+        h1 {
+            color: white;
+            font-size: 50px;
+            margin-bottom: 50px;
+        }
+
+        .score {
+            color: white;
+            font-size: 24px;
+            margin: 20px 0;
+        }
+
+        /* Button Styles */
+        .button-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .button {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .button:active {
+            transform: scale(0.9);
+        }
+
+        .red { background-color: #e74c3c; }
+        .blue { background-color: #3498db; }
+        .yellow { background-color: #f1c40f; }
+        .green { background-color: #2ecc71; }
+
+        /* Button Hover Effects */
+        .red:hover { box-shadow: 0 10px 25px rgba(231, 76, 60, 0.6); }
+        .blue:hover { box-shadow: 0 10px 25px rgba(52, 152, 219, 0.6); }
+        .yellow:hover { box-shadow: 0 10px 25px rgba(241, 196, 15, 0.6); }
+        .green:hover { box-shadow: 0 10px 25px rgba(46, 204, 113, 0.6); }
+
+        .start-btn {
+            background-color: #34495e;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .start-btn:hover {
+            background-color: #1abc9c;
+        }
+
+        /* Game Over Screen */
+        .game-over {
+            color: #e74c3c;
+            font-size: 40px;
+            display: none;
+        }
+
+        .reset-btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            display: none;
+        }
+
+        .reset-btn:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Simon Game</h1>
+        <div class="score" id="score">Score: 0</div>
+        <div class="button-container">
+            <div class="button red" id="red"></div>
+            <div class="button blue" id="blue"></div>
+            <div class="button yellow" id="yellow"></div>
+            <div class="button green" id="green"></div>
+        </div>
+        <button class="start-btn" id="startBtn">Start Game</button>
+        <div class="game-over" id="gameOver">Game Over!</div>
+        <button class="reset-btn" id="resetBtn">Play Again</button>
+    </div>
+
+    <script>
+        // Game Variables
+        const colors = ['red', 'blue', 'yellow', 'green'];
+        let gameSequence = [];
+        let playerSequence = [];
+        let score = 0;
+        let gameActive = false;
+
+        // HTML Elements
+        const startBtn = document.getElementById('startBtn');
+        const gameOverDisplay = document.getElementById('gameOver');
+        const resetBtn = document.getElementById('resetBtn');
+        const scoreDisplay = document.getElementById('score');
+        const buttons = {
+            red: document.getElementById('red'),
+            blue: document.getElementById('blue'),
+            yellow: document.getElementById('yellow'),
+            green: document.getElementById('green')
+        };
+
+        // Sounds
+        const sounds = {
+            red: new Audio('https://www.soundjay.com/button/beep-07.wav'),
+            blue: new Audio('https://www.soundjay.com/button/beep-08b.wav'),
+            yellow: new Audio('https://www.soundjay.com/button/beep-09.wav'),
+            green: new Audio('https://www.soundjay.com/button/beep-10.wav')
+        };
+
+        // Start the game
+        startBtn.addEventListener('click', startGame);
+
+        // Handle button click
+        Object.keys(buttons).forEach(color => {
+            buttons[color].addEventListener('click', () => handlePlayerInput(color));
+        });
+
+        // Start a new game
+        function startGame() {
+            score = 0;
+            gameSequence = [];
+            playerSequence = [];
+            gameActive = true;
+            gameOverDisplay.style.display = 'none';
+            resetBtn.style.display = 'none';
+            startBtn.style.display = 'none';
+            nextRound();
+        }
+
+        // Handle player's input
+        function handlePlayerInput(color) {
+            if (!gameActive) return;
+
+            playerSequence.push(color);
+            flashButton(color);
+            checkPlayerSequence();
+        }
+
+        // Check if player input matches the game sequence
+        function checkPlayerSequence() {
+            const currentIndex = playerSequence.length - 1;
+            if (playerSequence[currentIndex] !== gameSequence[currentIndex]) {
+                endGame();
+            } else {
+                if (playerSequence.length === gameSequence.length) {
+                    score++;
+                    scoreDisplay.textContent = `Score: ${score}`;
+                    playerSequence = [];
+                    setTimeout(nextRound, 1000);
+                }
+            }
+        }
+
+        // Move to next round and add a new step to the game sequence
+        function nextRound() {
+            playerSequence = [];
+            const nextColor = colors[Math.floor(Math.random() * colors.length)];
+            gameSequence.push(nextColor);
+            flashSequence();
+        }
+
+        // Flash the sequence of buttons
+        function flashSequence() {
+            let i = 0;
+            const interval = setInterval(() => {
+                flashButton(gameSequence[i]);
+                i++;
+                if (i === gameSequence.length) {
+                    clearInterval(interval);
+                }
+            }, 1000);
+        }
+
+        // Flash a button with animation
+        function flashButton(color) {
+            buttons[color].style.transform = 'scale(1.1)';
+            sounds[color].play();
+            setTimeout(() => {
+                buttons[color].style.transform = 'scale(1)';
+            }, 300);
+        }
+
+        // End the game if the player makes an incorrect guess
+        function endGame() {
+            gameActive = false;
+            gameOverDisplay.style.display = 'block';
+            resetBtn.style.display = 'inline-block';
+        }
+
+        // Reset the game after a loss
+        resetBtn.addEventListener('click', () => {
+            score = 0;
+            gameSequence = [];
+            playerSequence = [];
+            scoreDisplay.textContent = `Score: ${score}`;
+            gameOverDisplay.style.display = 'none';
+            resetBtn.style.display = 'none';
+            startBtn.style.display = 'inline-block';
+            gameActive = false;
+        });
+    </script>
+</body>
+</html>

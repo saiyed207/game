@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Pong Game</title>
+    <style>
+        /* General Reset and Styling */
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background-color: #121212;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+
+        #pongCanvas {
+            background-color: #1e1e1e;
+            border: 3px solid #fff;
+            border-radius: 8px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        /* 3D Effects */
+        .paddle {
+            position: absolute;
+            width: 20px;
+            height: 100px;
+            background-color: #3498db;
+            border-radius: 10px;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
+            transform-origin: center;
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .ball {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: #e74c3c;
+            border-radius: 50%;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transition: transform 0.1s ease;
+        }
+
+        /* Score */
+        .score {
+            position: absolute;
+            top: 20px;
+            color: #fff;
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            width: 100%;
+        }
+
+        /* 3D Animation Effects */
+        .paddle:hover {
+            transform: scale(1.1) rotateZ(15deg);
+        }
+
+    </style>
+</head>
+<body>
+    <canvas id="pongCanvas" width="800" height="400"></canvas>
+    <script>
+        const canvas = document.getElementById("pongCanvas");
+        const ctx = canvas.getContext("2d");
+
+        // Ball properties
+        let ball = {
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            radius: 10,
+            speed: 6,
+            dx: 4,
+            dy: 4,
+            color: "#e74c3c"
+        };
+
+        // Paddle properties
+        let paddleWidth = 20, paddleHeight = 100;
+        let leftPaddle = {
+            x: 0,
+            y: canvas.height / 2 - paddleHeight / 2,
+            width: paddleWidth,
+            height: paddleHeight,
+            dy: 0,
+            color: "#3498db"
+        };
+        let rightPaddle = {
+            x: canvas.width - paddleWidth,
+            y: canvas.height / 2 - paddleHeight / 2,
+            width: paddleWidth,
+            height: paddleHeight,
+            dy: 0,
+            color: "#3498db"
+        };
+
+        // Score tracking
+        let leftScore = 0, rightScore = 0;
+
+        // Key press state
+        let upArrow = false, downArrow = false, wKey = false, sKey = false;
+
+        // Draw the paddles
+        function drawPaddle(x, y, width, height, color) {
+            ctx.fillStyle = color;
+            ctx.fillRect(x, y, width, height);
+        }
+
+        // Draw the ball
+        function drawBall(x, y, radius, color) {
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, Math.PI * 2);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        // Draw the score
+        function drawScore() {
+            ctx.font = "24px Arial";
+            ctx.fillStyle = "#fff";
+            ctx.fillText("Player 1: " + leftScore, canvas.width / 4 - 50, 30);
+            ctx.fillText("Player 2: " + rightScore, 3 * canvas.width / 4 - 50, 30);
+        }
+
+        // Update the ball's position and check for collision
+        function moveBall() {
+            ball.x += ball.dx;
+            ball.y += ball.dy;
+
+            // Ball bounce off top and bottom
+            if (ball.y + ball.radius > canvas.height || ball.y - ball.radius < 0) {
+                ball.dy = -ball.dy;
+            }
+
+            // Ball collision with paddles
+            if (
+                ball.x - ball.radius < leftPaddle.x + leftPaddle.width && 
+                ball.x + ball.radius > leftPaddle.x && 
+                ball.y > leftPaddle.y && 
+                ball.y < leftPaddle.y + leftPaddle.height
+            ) {
+                ball.dx = -ball.dx;
+            }
+
+            if (
+                ball.x + ball.radius > rightPaddle.x && 
+                ball.x - ball.radius < rightPaddle.x + rightPaddle.width && 
+                ball.y > rightPaddle.y && 
+                ball.y < rightPaddle.y + rightPaddle.height
+            ) {
+                ball.dx = -ball.dx;
+            }
+
+            // Ball goes out of bounds (Left or Right)
+            if (ball.x - ball.radius < 0) {
+                rightScore++;
+                resetBall();
+            } else if (ball.x + ball.radius > canvas.width) {
+                leftScore++;
+                resetBall();
+            }
+        }
+
+        // Reset ball to the center after a point is scored
+        function resetBall() {
+            ball.x = canvas.width / 2;
+            ball.y = canvas.height / 2;
+            ball.dx = -ball.dx;
+            ball.dy = 4 * (Math.random() > 0.5 ? 1 : -1);
+        }
+
+        // Update the paddles' position
+        function movePaddles() {
+            if (wKey && leftPaddle.y > 0) {
+                leftPaddle.y -= 8;
+            } 
+            if (sKey && leftPaddle.y + leftPaddle.height < canvas.height) {
+                leftPaddle.y += 8;
+            }
+            if (upArrow && rightPaddle.y > 0) {
+                rightPaddle.y -= 8;
+            }
+            if (downArrow && rightPaddle.y + rightPaddle.height < canvas.height) {
+                rightPaddle.y += 8;
+            }
+        }
+
+        // Render the game components
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            drawPaddle(leftPaddle.x, leftPaddle.y, leftPaddle.width, leftPaddle.height, leftPaddle.color);
+            drawPaddle(rightPaddle.x, rightPaddle.y, rightPaddle.width, rightPaddle.height, rightPaddle.color);
+            drawBall(ball.x, ball.y, ball.radius, ball.color);
+            drawScore();
+
+            moveBall();
+            movePaddles();
+
+            requestAnimationFrame(render);
+        }
+
+        // Keydown and Keyup events
+        document.addEventListener("keydown", function(event) {
+            if (event.key === "ArrowUp") upArrow = true;
+            if (event.key === "ArrowDown") downArrow = true;
+            if (event.key === "w") wKey = true;
+            if (event.key === "s") sKey = true;
+        });
+
+        document.addEventListener("keyup", function(event) {
+            if (event.key === "ArrowUp") upArrow = false;
+            if (event.key === "ArrowDown") downArrow = false;
+            if (event.key === "w") wKey = false;
+            if (event.key === "s") sKey = false;
+        });
+
+        // Initialize the game
+        render();
+    </script>
+</body>
+</html>

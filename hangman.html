@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hangman Game</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+        }
+
+        .container {
+            text-align: center;
+            width: 400px;
+        }
+
+        #word {
+            font-size: 36px;
+            letter-spacing: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #wrong-guesses {
+            font-size: 18px;
+            color: #ff4d4d;
+            margin-bottom: 20px;
+        }
+
+        .hangman {
+            width: 200px;
+            height: 200px;
+            background: url('https://upload.wikimedia.org/wikipedia/commons/4/4f/Rotating_noose.png') no-repeat center center;
+            background-size: 100px 200px;
+            margin: 20px auto;
+            display: none;
+        }
+
+        .hangman-part {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #333;
+            border-radius: 50%;
+            animation: hangman-draw 0.5s ease-out forwards;
+        }
+
+        #guessed-letters {
+            font-size: 20px;
+            margin-top: 10px;
+        }
+
+        .reset-btn {
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .reset-btn:hover {
+            background-color: #2980b9;
+        }
+
+        @keyframes hangman-draw {
+            0% { transform: scale(0); }
+            100% { transform: scale(1); }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Hangman Game</h1>
+        <div id="word"></div>
+        <div id="wrong-guesses"></div>
+        <div class="hangman" id="hangman"></div>
+        <div id="guessed-letters"></div>
+        <div>
+            <input type="text" id="letter-input" maxlength="1" autocomplete="off" autofocus>
+            <button class="reset-btn" id="submit-btn">Guess</button>
+        </div>
+        <button class="reset-btn" id="reset-btn" style="display:none;">Start New Game</button>
+    </div>
+
+    <script>
+        // Game variables
+        const words = ["javascript", "hangman", "programming", "coding", "developer", "computer", "algorithm"];
+        let selectedWord = "";
+        let guessedLetters = [];
+        let wrongGuesses = [];
+        let maxWrongGuesses = 6;
+        let currentWrongGuesses = 0;
+        let gameOver = false;
+
+        const wordDisplay = document.getElementById("word");
+        const wrongGuessesDisplay = document.getElementById("wrong-guesses");
+        const hangmanImage = document.getElementById("hangman");
+        const guessedLettersDisplay = document.getElementById("guessed-letters");
+        const letterInput = document.getElementById("letter-input");
+        const submitBtn = document.getElementById("submit-btn");
+        const resetBtn = document.getElementById("reset-btn");
+
+        // Start a new game
+        function startGame() {
+            selectedWord = words[Math.floor(Math.random() * words.length)];
+            guessedLetters = [];
+            wrongGuesses = [];
+            currentWrongGuesses = 0;
+            gameOver = false;
+            wordDisplay.innerHTML = generateWordDisplay();
+            wrongGuessesDisplay.innerHTML = "Wrong guesses: ";
+            guessedLettersDisplay.innerHTML = "Guessed letters: ";
+            hangmanImage.style.display = "none";
+            resetBtn.style.display = "none";
+            letterInput.value = "";
+            letterInput.focus();
+        }
+
+        // Generate the word display with underscores for unguessed letters
+        function generateWordDisplay() {
+            return selectedWord.split("").map(letter => {
+                return guessedLetters.includes(letter) ? letter : "_";
+            }).join(" ");
+        }
+
+        // Handle letter input and guess
+        function handleGuess() {
+            const guessedLetter = letterInput.value.toLowerCase();
+            if (guessedLetter && !guessedLetters.includes(guessedLetter)) {
+                guessedLetters.push(guessedLetter);
+                if (selectedWord.includes(guessedLetter)) {
+                    wordDisplay.innerHTML = generateWordDisplay();
+                    checkWin();
+                } else {
+                    wrongGuesses.push(guessedLetter);
+                    currentWrongGuesses++;
+                    updateWrongGuesses();
+                    drawHangman();
+                    checkLoss();
+                }
+                letterInput.value = "";
+            }
+        }
+
+        // Update wrong guesses display
+        function updateWrongGuesses() {
+            wrongGuessesDisplay.innerHTML = `Wrong guesses: ${wrongGuesses.join(", ")}`;
+        }
+
+        // Draw the hangman progressively
+        function drawHangman() {
+            const hangmanParts = [
+                { top: 0, left: 90 }, // head
+                { top: 30, left: 100 }, // body
+                { top: 70, left: 110 }, // left arm
+                { top: 70, left: 90 }, // right arm
+                { top: 110, left: 100 }, // left leg
+                { top: 110, left: 120 } // right leg
+            ];
+            if (currentWrongGuesses <= maxWrongGuesses) {
+                const part = document.createElement('div');
+                part.classList.add('hangman-part');
+                part.style.top = hangmanParts[currentWrongGuesses - 1].top + 'px';
+                part.style.left = hangmanParts[currentWrongGuesses - 1].left + 'px';
+                hangmanImage.appendChild(part);
+            }
+
+            if (currentWrongGuesses === maxWrongGuesses) {
+                gameOver = true;
+                wrongGuessesDisplay.innerHTML += "<br><strong>Game Over! You Lost.</strong>";
+                resetBtn.style.display = "inline-block";
+            }
+        }
+
+        // Check if the player has won
+        function checkWin() {
+            if (selectedWord.split("").every(letter => guessedLetters.includes(letter))) {
+                gameOver = true;
+                wrongGuessesDisplay.innerHTML += "<br><strong>Congratulations! You Won!</strong>";
+                resetBtn.style.display = "inline-block";
+            }
+        }
+
+        // Event listeners
+        submitBtn.addEventListener("click", () => {
+            if (!gameOver) {
+                handleGuess();
+            }
+        });
+
+        letterInput.addEventListener("keyup", (e) => {
+            if (e.key === "Enter") {
+                if (!gameOver) {
+                    handleGuess();
+                }
+            }
+        });
+
+        resetBtn.addEventListener("click", startGame);
+
+        // Start the first game
+        startGame();
+    </script>
+</body>
+</html>

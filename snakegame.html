@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake Game</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #2e2e2e;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            flex-direction: column;
+            color: white;
+        }
+
+        .game-container {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            background-color: #333;
+            border: 5px solid #444;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+        }
+
+        .score {
+            margin-top: 20px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .restart-btn {
+            padding: 10px 20px;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+            margin-top: 20px;
+            transition: background-color 0.3s;
+        }
+
+        .restart-btn:hover {
+            background-color: #c0392b;
+        }
+
+        .game-over-message {
+            font-size: 24px;
+            color: #f39c12;
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Snake Game</h1>
+<div class="game-container" id="gameContainer"></div>
+<p class="score">Score: <span id="score">0</span></p>
+<button class="restart-btn" onclick="restartGame()">Restart Game</button>
+<p class="game-over-message" id="gameOverMessage" style="display:none;">Game Over! Try Again!</p>
+
+<script>
+    const gameContainer = document.getElementById("gameContainer");
+    const scoreElement = document.getElementById("score");
+    const gameOverMessage = document.getElementById("gameOverMessage");
+
+    const gridSize = 20; // The size of each grid block
+    let snake = [{ x: 8, y: 8 }];
+    let direction = { x: 1, y: 0 };
+    let food = generateFood();
+    let score = 0;
+    let gameInterval;
+    let gameOver = false;
+
+    function generateFood() {
+        const foodX = Math.floor(Math.random() * (gameContainer.offsetWidth / gridSize));
+        const foodY = Math.floor(Math.random() * (gameContainer.offsetHeight / gridSize));
+        return { x: foodX * gridSize, y: foodY * gridSize };
+    }
+
+    function drawGame() {
+        if (gameOver) return;
+
+        gameContainer.innerHTML = ''; // Clear the game container
+
+        // Draw the snake
+        snake.forEach(segment => {
+            const snakeSegment = document.createElement("div");
+            snakeSegment.style.position = "absolute";
+            snakeSegment.style.width = `${gridSize}px`;
+            snakeSegment.style.height = `${gridSize}px`;
+            snakeSegment.style.backgroundColor = "#2ecc71";
+            snakeSegment.style.left = `${segment.x * gridSize}px`;
+            snakeSegment.style.top = `${segment.y * gridSize}px`;
+            gameContainer.appendChild(snakeSegment);
+        });
+
+        // Draw the food
+        const foodElement = document.createElement("div");
+        foodElement.style.position = "absolute";
+        foodElement.style.width = `${gridSize}px`;
+        foodElement.style.height = `${gridSize}px`;
+        foodElement.style.backgroundColor = "#e74c3c";
+        foodElement.style.left = `${food.x}px`;
+        foodElement.style.top = `${food.y}px`;
+        gameContainer.appendChild(foodElement);
+
+        // Update the score
+        scoreElement.textContent = score;
+    }
+
+    function moveSnake() {
+        const head = { ...snake[0] };
+        head.x += direction.x;
+        head.y += direction.y;
+
+        // Check for collisions with walls or self
+        if (head.x < 0 || head.x >= gameContainer.offsetWidth / gridSize || head.y < 0 || head.y >= gameContainer.offsetHeight / gridSize || isCollidingWithSnake(head)) {
+            endGame();
+            return;
+        }
+
+        snake.unshift(head);
+
+        // Check for food
+        if (head.x === food.x / gridSize && head.y === food.y / gridSize) {
+            score += 10;
+            food = generateFood();
+        } else {
+            snake.pop();
+        }
+    }
+
+    function isCollidingWithSnake(head) {
+        return snake.some(segment => segment.x === head.x && segment.y === head.y);
+    }
+
+    function endGame() {
+        gameOver = true;
+        clearInterval(gameInterval);
+        gameOverMessage.style.display = "block";
+    }
+
+    function changeDirection(event) {
+        if (event.key === "ArrowUp" && direction.y !== 1) {
+            direction = { x: 0, y: -1 };
+        } else if (event.key === "ArrowDown" && direction.y !== -1) {
+            direction = { x: 0, y: 1 };
+        } else if (event.key === "ArrowLeft" && direction.x !== 1) {
+            direction = { x: -1, y: 0 };
+        } else if (event.key === "ArrowRight" && direction.x !== -1) {
+            direction = { x: 1, y: 0 };
+        }
+    }
+
+    function restartGame() {
+        snake = [{ x: 8, y: 8 }];
+        direction = { x: 1, y: 0 };
+        food = generateFood();
+        score = 0;
+        gameOver = false;
+        gameOverMessage.style.display = "none";
+        gameInterval = setInterval(gameLoop, 100);
+    }
+
+    function gameLoop() {
+        if (gameOver) return;
+        moveSnake();
+        drawGame();
+    }
+
+    // Initialize the game
+    document.addEventListener("keydown", changeDirection);
+    gameInterval = setInterval(gameLoop, 100);
+</script>
+
+</body>
+</html>

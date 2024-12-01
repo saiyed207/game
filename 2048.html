@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2048 Game - 3D Style</title>
+    <style>
+        /* General Styles */
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background-color: #faf8ef;
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        #game-container {
+            width: 450px;
+            height: 450px;
+            background: #bbada0;
+            border-radius: 10px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(4, 1fr);
+            gap: 10px;
+            padding: 10px;
+            position: relative;
+            transform: perspective(800px);
+            transition: transform 0.3s ease;
+        }
+
+        /* Tile Styling */
+        .tile {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+            border-radius: 10px;
+            font-size: 32px;
+            color: white;
+            font-weight: bold;
+            background-color: #cdc1b4;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: all 0.2s ease;
+            transform: scale(1);
+        }
+
+        /* Tile Colors */
+        .tile[data-value="2"] {
+            background-color: #eee4da;
+            color: #776e65;
+        }
+
+        .tile[data-value="4"] {
+            background-color: #ede0c8;
+            color: #776e65;
+        }
+
+        .tile[data-value="8"] {
+            background-color: #f2b179;
+            color: white;
+        }
+
+        .tile[data-value="16"] {
+            background-color: #f59563;
+            color: white;
+        }
+
+        .tile[data-value="32"] {
+            background-color: #f67c5f;
+            color: white;
+        }
+
+        .tile[data-value="64"] {
+            background-color: #f65e3b;
+            color: white;
+        }
+
+        .tile[data-value="128"] {
+            background-color: #edcf72;
+            color: white;
+        }
+
+        .tile[data-value="256"] {
+            background-color: #edcc61;
+            color: white;
+        }
+
+        .tile[data-value="512"] {
+            background-color: #edc850;
+            color: white;
+        }
+
+        .tile[data-value="1024"] {
+            background-color: #edc53f;
+            color: white;
+        }
+
+        .tile[data-value="2048"] {
+            background-color: #edc22e;
+            color: white;
+        }
+
+        /* Game Over/Win Message */
+        .message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            font-size: 36px;
+            color: #ffffff;
+            font-weight: bold;
+            display: none;
+        }
+
+        .message p {
+            margin: 10px;
+        }
+
+        .message.active {
+            display: block;
+        }
+
+        /* 3D effects */
+        .tile {
+            transform-style: preserve-3d;
+        }
+
+        .tile.move {
+            animation: moveTile 0.2s ease-out;
+        }
+
+        @keyframes moveTile {
+            from {
+                transform: translateZ(0);
+            }
+            to {
+                transform: translateZ(10px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <!-- Tiles will be dynamically added here -->
+    </div>
+    <div class="message" id="message">
+        <p id="message-text"></p>
+        <button onclick="resetGame()">Try Again</button>
+    </div>
+
+    <script>
+        const gridSize = 4;  // 4x4 grid
+        let board = [];
+        let gameOver = false;
+        let hasMoved = false;
+        const gameContainer = document.getElementById('game-container');
+        const messageElement = document.getElementById('message');
+        const messageText = document.getElementById('message-text');
+
+        // Initialize the board with 0 values
+        function initBoard() {
+            board = Array(gridSize).fill().map(() => Array(gridSize).fill(0));
+            addRandomTile();
+            addRandomTile();
+            renderBoard();
+            gameOver = false;
+            hasMoved = false;
+        }
+
+        // Add a random tile (2 or 4)
+        function addRandomTile() {
+            let emptySpaces = [];
+            for (let row = 0; row < gridSize; row++) {
+                for (let col = 0; col < gridSize; col++) {
+                    if (board[row][col] === 0) {
+                        emptySpaces.push({ row, col });
+                    }
+                }
+            }
+            if (emptySpaces.length === 0) return;
+
+            const randomSpot = emptySpaces[Math.floor(Math.random() * emptySpaces.length)];
+            const value = Math.random() < 0.9 ? 2 : 4;
+            board[randomSpot.row][randomSpot.col] = value;
+            renderBoard();
+        }
+
+        // Render the board
+        function renderBoard() {
+            gameContainer.innerHTML = '';
+            for (let row = 0; row < gridSize; row++) {
+                for (let col = 0; col < gridSize; col++) {
+                    const tileValue = board[row][col];
+                    const tile = document.createElement('div');
+                    tile.classList.add('tile');
+                    if (tileValue > 0) {
+                        tile.setAttribute('data-value', tileValue);
+                        tile.innerText = tileValue;
+                    } else {
+                        tile.classList.add('empty');
+                    }
+                    gameContainer.appendChild(tile);
+                    tile.style.gridColumnStart = col + 1;
+                    tile.style.gridRowStart = row + 1;
+                    if (tileValue) {
+                        tile.classList.add('move');
+                        setTimeout(() => {
+                            tile.classList.remove('move');
+                        }, 200);
+                    }
+                }
+            }
+        }
+
+        // Move logic (left, right, up, down)
+        function move(direction) {
+            if (gameOver || hasMoved) return;
+            hasMoved = true;
+
+            switch (direction) {
+                case 'left':
+                    slideLeft();
+                    break;
+                case 'right':
+                    slideRight();
+                    break;
+                case 'up':
+                    slideUp();
+                    break;
+                case 'down':
+                    slideDown();
+                    break;
+                default:
+                    break;
+            }
+
+            addRandomTile();
+            renderBoard();
+
+            if (isGameOver()) {
+                gameOver = true;
+                messageText.innerText = "Game Over!";
+                messageElement.classList.add('active');
+            } else if (checkWin()) {
+                gameOver = true;
+                messageText.innerText = "You Win!";
+                messageElement.classList.add('active');
+            }
+        }
+
+        // Slide and combine logic for all directions
+        function slideLeft() {
+            for (let row = 0; row < gridSize; row++) {
+                let newRow = board[row].filter(val => val !== 0);
+                for (let i = 0; i < newRow.length - 1; i++) {
+                    if (newRow[i] === newRow[i + 1]) {
+                        newRow[i] *= 2;
+                        newRow[i + 1] = 0;
+                    }
+                }
+                newRow = newRow.filter(val => val !== 0);
+                while (newRow.length < gridSize) newRow.push(0);
+                board[row] = newRow;
+            }
+        }
+
+        function slideRight() {
+            for (let row = 0; row < gridSize; row++) {
+                board[row] = board[row].reverse();
+            }
+            slideLeft();
+            for (let row = 0; row < gridSize; row++) {
+                board[row] = board[row].reverse();
+            }
+        }
+
+        function slideUp() {
+            for (let col = 0; col < gridSize; col++) {
+                let newCol = [];
+                for (let row = 0; row < gridSize; row++) {
+                    if (board[row][col] !== 0) {
+                        newCol.push(board[row][col]);
+                    }
+                }
+                for (let i = 0; i < newCol.length - 1; i++) {
+                    if (newCol[i] === newCol[i + 1]) {
+                        newCol[i] *= 2;
+                        newCol[i + 1] = 0;
+                    }
+                }
+                newCol = newCol.filter(val => val !== 0);
+                while (newCol.length < gridSize) newCol.unshift(0);
+                for (let row = 0; row < gridSize; row++) {
+                    board[row][col] = newCol[row];
+                }
+            }
+        }
+
+        function slideDown() {
+            for (let col = 0; col < gridSize; col++) {
+                let newCol = [];
+                for (let row = 0; row < gridSize; row++) {
+                    if (board[row][col] !== 0) {
+                        newCol.push(board[row][col]);
+                    }
+                }
+                for (let i = 0; i < newCol.length - 1; i++) {
+                    if (newCol[i] === newCol[i + 1]) {
+                        newCol[i] *= 2;
+                        newCol[i + 1] = 0;
+                    }
+                }
+                newCol = newCol.filter(val => val !== 0);
+                while (newCol.length < gridSize) newCol.push(0);
+                for (let row = 0; row < gridSize; row++) {
+                    board[row][col] = newCol[row];
+                }
+            }
+        }
+
+        // Check if the game is over
+        function isGameOver() {
+            for (let row = 0; row < gridSize; row++) {
+                for (let col = 0; col < gridSize; col++) {
+                    if (board[row][col] === 0) return false;
+                    if (row < gridSize - 1 && board[row][col] === board[row + 1][col]) return false;
+                    if (col < gridSize - 1 && board[row][col] === board[row][col + 1]) return false;
+                }
+            }
+            return true;
+        }
+
+        // Check if the player has reached 2048
+        function checkWin() {
+            for (let row = 0; row < gridSize; row++) {
+                for (let col = 0; col < gridSize; col++) {
+                    if (board[row][col] === 2048) return true;
+                }
+            }
+            return false;
+        }
+
+        // Reset the game
+        function resetGame() {
+            messageElement.classList.remove('active');
+            initBoard();
+        }
+
+        // Handle keyboard events for moving tiles
+        document.addEventListener('keydown', (event) => {
+            if (gameOver) return;
+            switch (event.key) {
+                case 'ArrowUp': move('up'); break;
+                case 'ArrowDown': move('down'); break;
+                case 'ArrowLeft': move('left'); break;
+                case 'ArrowRight': move('right'); break;
+                default: break;
+            }
+        });
+
+        initBoard();  // Initialize the game board
+    </script>
+</body>
+</html>

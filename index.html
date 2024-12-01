@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Game Grid</title>
+    <style>
+        /* Reset default margin and padding */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #222;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            flex-direction: column;
+            color: white;
+            padding: 20px;
+            overflow-y: auto; /* Allow scrolling */
+            height: auto;
+            perspective: 1500px; /* Add perspective for 3D effect */
+        }
+
+        /* Title styling */
+        h1 {
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-align: center;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7);
+        }
+
+        /* Create the 3D grid container */
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr); /* 4 columns per row */
+            gap: 20px; /* Space between the blocks */
+            max-width: 1200px;
+            width: 100%;
+            grid-template-rows: repeat(5, 1fr); /* 5 rows */
+            margin-top: 50px;
+        }
+
+        /* Styling each game block */
+        .game-block {
+            width: 100%;
+            height: 180px;
+            background-color: #444;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            transform: rotateY(0deg);
+            transition: transform 0.5s ease, box-shadow 0.3s ease;
+        }
+
+        /* Hover effect */
+        .game-block:hover {
+            transform: rotateY(15deg) scale(1.05); /* Add 3D flip and zoom effect */
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Inside of the game block (text, image) */
+        .game-block img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 10px;
+            transition: opacity 0.3s ease;
+        }
+
+        /* Add hover effect to the image */
+        .game-block:hover img {
+            opacity: 0.7; /* Fade image slightly on hover */
+        }
+
+        /* Title of the game block */
+        .game-block h3 {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.5em;
+            text-align: center;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+        }
+
+        /* Additional responsive styling for smaller screens */
+        @media (max-width: 768px) {
+            .game-grid {
+                grid-template-columns: repeat(2, 1fr); /* 2 columns on small screens */
+            }
+        }
+
+        @media (max-width: 480px) {
+            .game-grid {
+                grid-template-columns: 1fr; /* 1 column on extra small screens */
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+<h1>20 Game Collection</h1>
+
+<div class="game-grid">
+    <!-- Game Blocks with GIFs -->
+    <div class="game-block" onclick="window.location.href='tictactoe.html'">
+        <img src="https://media.giphy.com/media/LtGpcWj3donEg3Doj2/giphy.gif?cid=790b761155fpoit35zux7d82cjcpy8nsn91eq31n1rbw1q5o&ep=v1_gifs_search&rid=giphy.gif&ct=g" alt="Tic Tac Toe">
+        <h3>Tic Tac Toe</h3>
+    </div>
+    <div class="game-block" onclick="window.location.href='memorygame.html'">
+        <img src="https://media.giphy.com/media/X4SS63h7k5umY/giphy.gif?cid=790b7611flu99uhzbgc2k303tzwqg10e1jt8o7cx7zhashm3&ep=v1_gifs_search&rid=giphy.gif&ct=g" alt="Memory Game">
+        <h3>Memory Game</h3>
+    </div>
+    <div class="game-block" onclick="window.location.href='rockpaperscissor.html'">
+        <img src="https://media.giphy.com/media/3ohzdGnD5vAud1NCZW/giphy.gif?cid=790b7611b4rqgisylbmdtfm2ogq1mnp1ici6qw6e1g50m9ey&ep=v1_gifs_search&rid=giphy.gif&ct=g" alt="Rock Paper Scissors">
+        <h3>Rock Paper</h3>
+    </div>
+    <div class="game-block" onclick="window.location.href='snakegame.html'">
+        <img src="https://media.giphy.com/media/zPdwt79PXjMEo/giphy.gif?cid=790b7611rfqg8tldp4wz4zsbcli8cfxy0005yxwnz6v93ay9&ep=v1_gifs_search&rid=giphy.gif&ct=g" alt="Snake Game">
+        <h3>Snake Game</h3>
+    </div>
+
+    <div class="game-block" onclick="window.location.href='flappybirdclone.html'">
+        <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExeGxybjFyemNmOTBoenMxaXdybmY3dGpxMDR2dG44NzN5OWdrZHV3ZSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/euuaA2cwLEUuI/giphy.gif" alt="Flappy Bird">
+        <h3>Flappy Bird</h3>
+    </div>
+    <div class="game-block" onclick="window.location.href='2048.html'">
+        <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExZHozY3V3eTNzd2xzbmI3MHZzaGhrMDZrNWh1b281NjI0c2lrYWRkNCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/g5P8mWjpLsXjMndgIC/giphy.gif" alt="2048 Game">
+        <h3>2048</h3>
+    </div>
+    <div class="game-block" onclick="window.location.href='pong.html'">
+        <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExY3NxcHhuOG02OGdpMDFtbWdmMGdxaGtoZjZma2RxdHBjNDRlNG1vaiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/l41lIvPtFdU3cLQjK/giphy.gif" alt="Pong">
+        <h3>Pong</h3>
+    </div>
+    <div class="game-block" onclick="window.location.href='hangman.html'">
+        <img src="https://media.giphy.com/media/d2lcHJTG5Tscg/giphy.gif" alt="Hangman">
+        <h3>Hangman</h3>
+    </div>
+
+    <div class="game-block" onclick="window.location.href='simongame.html'">
+        <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExeml6amwyZTJlcTR6ZHh5aHB6bmd2djl4enAzMnhucTM1b2Z2ejZvZyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/1ynDdTFPdEawyZdBVu/giphy.gif" alt="Simon Game">
+        <h3>Simon Game</h3>
+    </div>
+    <div class="game-block" onclick="window.location.href='spaceinvaders.html'">
+        <img src="https://media.giphy.com/media/RtpmUzMbynBeCgEa5E/giphy.gif?cid=790b7611knam5kmsb3a74fwj97tp23o32yqykgwapaqy8ppw&ep=v1_gifs_search&rid=giphy.gif&ct=g" alt="Space Invaders">
+        <h3>Space Invaders</h3>
+    </div>
+    <div class="game-block" onclick="window.location.href='minesweeper.html'">
+        <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOTQ4eGJld3Jud3Ixcm96MXNwenBwdHdzaWNic3c5czN2NnFmdDdraiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/l3V0GQMoaDLVbjXEI/giphy.gif" alt="Minesweeper">
+        <h3>Minesweeper</h3>
+    </div>
+    <div class="game-block" onclick="window.location.href='whackamole.html'">
+        <img src="https://media.giphy.com/media/X8zlqcZ3w1WeRgUioW/giphy.gif?cid=790b76113fcj1y0k2syocer7pkhr0hbxdp3q9gvdzg9tmjdb&ep=v1_gifs_search&rid=giphy.gif&ct=g" alt="Whack-A-Mole">
+        <h3>Whack-A-Mole</h3>
+    </div>
+
+    <div class="game-block" onclick="window.location.href='bubbleshooter.html'">
+        <img src="https://media.giphy.com/media/d3pX48QLGdBxgJWg/giphy.gif?cid=790b7611l68cp1hmnl9has94wv8p1u5y26nslcemerrtmcae&ep=v1_gifs_search&rid=giphy.gif&ct=g" alt="Bubble Shooter">
+        <h3>Bubble Shooter</h3>
+    </div>
+    <div class="game-block" onclick="window.location.href='casino.html'">
+        <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExeWJqOTJkZTFqbGxrdGtoenJ4cmpjbnp2djg0MXBnM2Z4MTZ2bG85YiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/2YHdXovMSv1NtO6V4n/giphy.gif" alt="Slot Machine">
+        <h3>Slot Machine</h3>
+    </div>
+    <div class="game-block" onclick="window.location.href='memorymatch.html'">
+        <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcHVwb3R1NWpub3hnczMyaWFsaGQ3bTV6d3psZDNwY3R6OXRvbmg2biZlcD12MV9naWZzX3NlYXJjaCZjdD1n/YSxEPh96STAGZSl3Kk/giphy.gif" alt="Memory Match">
+        <h3>Memory Match</h3>
+    </div>
+    <div class="game-block" onclick="window.location.href='typingspeed.html'">
+        <img src="https://media.giphy.com/media/26AHONQ79FdWZhAI0/giphy.gif?cid=790b7611w0zn3e63svl5bmmnugqr7his4zw3lir27debes9j&ep=v1_gifs_search&rid=giphy.gif&ct=g" alt="Typing Speed Test">
+        <h3>Typing Speed</h3>
+    </div>
+
+    <div class="game-block" onclick="window.location.href='crossword.html'">
+        <img src="https://media.giphy.com/media/POH0L58yVtiSeEHbAj/giphy.gif?cid=790b7611j4mq6r4c5xtntbgoezq4k2ymuytvy3d4yl19m8eq&ep=v1_gifs_search&rid=giphy.gif&ct=g" alt="Crossword Puzzle">
+        <h3>Crossword Puzzle</h3>
+    </div>
+    <div class="game-block" onclick="window.location.href='platformer.html'">
+        <img src="https://media.giphy.com/media/BNsqVFRQ4hjw3p4hd8/giphy.gif?cid=790b7611gok0uvjgwphqz2t5r7v52p95ykhytpp1eblrqszt&ep=v1_gifs_search&rid=giphy.gif&ct=g" alt="Platformer">
+        <h3>Platformer</h3>
+    </div>
+    <div class="game-block" onclick="window.location.href='catch.html'">
+        <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExdnRkbHJwbnhlOWE3M2Q0anB0bHIyMDNza2EwODgyaHhucTczcHY2diZlcD12MV9naWZzX3NlYXJjaCZjdD1n/12xOJMUSoFP4TC/giphy.gif" alt="Catch Falling Objects">
+        <h3>Catch Objects</h3>
+    </div>
+    <div class="game-block" onclick="window.location.href='traffic.html'">
+        <img src="https://media.giphy.com/media/3o7WTwUO3cXdLldWuc/giphy.gif?cid=790b7611a5u7q73ewkwckb5wh9pxf8tjkfmybx0l7e07ou30&ep=v1_gifs_search&rid=giphy.gif&ct=g" alt="Traffic Racer">
+        <h3>Traffic Racer</h3>
+    </div>
+</div>
+
+</body>
+</html>

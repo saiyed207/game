@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Space Invaders 3D</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background-color: #1a1a1a;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        canvas {
+            border: 5px solid #fff;
+            background-color: #0a0a0a;
+        }
+        .start-btn {
+            position: absolute;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            font-size: 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            top: 40%;
+        }
+        .start-btn:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <button class="start-btn" id="startBtn">Start Game</button>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+
+        let gameInterval;
+        let isGameRunning = false;
+        const spaceshipWidth = 50;
+        const spaceshipHeight = 30;
+        const bulletWidth = 5;
+        const bulletHeight = 10;
+        const invaderWidth = 40;
+        const invaderHeight = 30;
+
+        const spaceship = {
+            x: canvas.width / 2 - spaceshipWidth / 2,
+            y: canvas.height - spaceshipHeight - 10,
+            width: spaceshipWidth,
+            height: spaceshipHeight,
+            speed: 6,
+            dx: 0
+        };
+
+        const bullets = [];
+        const invaders = [];
+        let score = 0;
+
+        const keys = {
+            right: false,
+            left: false,
+            space: false
+        };
+
+        const startBtn = document.getElementById("startBtn");
+
+        // Start game when clicked on the "Start Game" button
+        startBtn.addEventListener("click", startGame);
+
+        function startGame() {
+            startBtn.style.display = "none";
+            isGameRunning = true;
+            invaders.length = 0;
+            bullets.length = 0;
+            score = 0;
+            createInvaders();
+            gameInterval = setInterval(update, 1000 / 60);
+        }
+
+        // Create invaders in a grid pattern
+        function createInvaders() {
+            for (let row = 0; row < 5; row++) {
+                for (let col = 0; col < 10; col++) {
+                    invaders.push({
+                        x: col * (invaderWidth + 10) + 50,
+                        y: row * (invaderHeight + 10) + 30,
+                        width: invaderWidth,
+                        height: invaderHeight,
+                        alive: true
+                    });
+                }
+            }
+        }
+
+        // Draw spaceship
+        function drawSpaceship() {
+            ctx.fillStyle = "#00ff00";
+            ctx.fillRect(spaceship.x, spaceship.y, spaceship.width, spaceship.height);
+        }
+
+        // Draw bullets
+        function drawBullets() {
+            ctx.fillStyle = "#f39c12";
+            bullets.forEach(bullet => {
+                ctx.fillRect(bullet.x, bullet.y, bulletWidth, bulletHeight);
+            });
+        }
+
+        // Draw invaders
+        function drawInvaders() {
+            invaders.forEach(invader => {
+                if (invader.alive) {
+                    ctx.fillStyle = "#e74c3c";
+                    ctx.fillRect(invader.x, invader.y, invader.width, invader.height);
+                }
+            });
+        }
+
+        // Move spaceship
+        function moveSpaceship() {
+            spaceship.x += spaceship.dx;
+            if (spaceship.x < 0) spaceship.x = 0;
+            if (spaceship.x + spaceship.width > canvas.width) spaceship.x = canvas.width - spaceship.width;
+        }
+
+        // Move bullets
+        function moveBullets() {
+            bullets.forEach((bullet, index) => {
+                bullet.y -= 5;
+                if (bullet.y < 0) {
+                    bullets.splice(index, 1);
+                }
+            });
+        }
+
+        // Move invaders
+        function moveInvaders() {
+            invaders.forEach(invader => {
+                invader.y += 1;
+            });
+        }
+
+        // Check collisions between bullets and invaders
+        function checkCollisions() {
+            bullets.forEach((bullet, bulletIndex) => {
+                invaders.forEach((invader, invaderIndex) => {
+                    if (invader.alive && bullet.x < invader.x + invader.width && bullet.x + bulletWidth > invader.x &&
+                        bullet.y < invader.y + invader.height && bullet.y + bulletHeight > invader.y) {
+                        invader.alive = false;
+                        bullets.splice(bulletIndex, 1);
+                        score += 10;
+                    }
+                });
+            });
+        }
+
+        // Draw score
+        function drawScore() {
+            ctx.fillStyle = "#fff";
+            ctx.font = "20px Arial";
+            ctx.fillText("Score: " + score, 10, 30);
+        }
+
+        // Game over check
+        function checkGameOver() {
+            invaders.forEach(invader => {
+                if (invader.y + invader.height >= spaceship.y && invader.alive) {
+                    endGame();
+                }
+            });
+        }
+
+        // End the game
+        function endGame() {
+            clearInterval(gameInterval);
+            isGameRunning = false;
+            ctx.fillStyle = "#e74c3c";
+            ctx.font = "40px Arial";
+            ctx.fillText("Game Over!", canvas.width / 2 - 100, canvas.height / 2);
+            setTimeout(() => {
+                startBtn.style.display = "block";
+            }, 2000);
+        }
+
+        // Handle player input
+        function handleInput() {
+            if (keys.right) spaceship.dx = spaceship.speed;
+            else if (keys.left) spaceship.dx = -spaceship.speed;
+            else spaceship.dx = 0;
+
+            if (keys.space && !isGameRunning) {
+                startGame();
+            }
+        }
+
+        // Update game
+        function update() {
+            if (!isGameRunning) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            handleInput();
+            moveSpaceship();
+            moveBullets();
+            moveInvaders();
+            checkCollisions();
+            checkGameOver();
+
+            drawSpaceship();
+            drawBullets();
+            drawInvaders();
+            drawScore();
+        }
+
+        // Listen for key events
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "ArrowRight") keys.right = true;
+            if (e.key === "ArrowLeft") keys.left = true;
+            if (e.key === " ") keys.space = true;
+            if (e.key === "Enter" && !isGameRunning) startGame();
+        });
+
+        document.addEventListener("keyup", (e) => {
+            if (e.key === "ArrowRight") keys.right = false;
+            if (e.key === "ArrowLeft") keys.left = false;
+            if (e.key === " ") keys.space = false;
+        });
+
+        // Create bullets
+        function createBullet() {
+            bullets.push({
+                x: spaceship.x + spaceship.width / 2 - bulletWidth / 2,
+                y: spaceship.y,
+            });
+        }
+
+        // Game loop
+        setInterval(() => {
+            if (keys.space && isGameRunning) {
+                createBullet();
+            }
+        }, 200);
+
+    </script>
+</body>
+</html>

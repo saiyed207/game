@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slot Machine Casino Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background-color: #34495e;
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+            color: white;
+            text-align: center;
+        }
+        h1 {
+            margin-bottom: 30px;
+        }
+        .slot-machine {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            font-size: 40px;
+            width: 300px;
+            height: 120px;
+            background-color: #2c3e50;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+        }
+        .reel {
+            width: 80px;
+            height: 100px;
+            background-color: #ecf0f1;
+            border-radius: 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 40px;
+            color: #2980b9;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            transition: transform 0.5s ease-in-out;
+        }
+        .button {
+            margin-top: 20px;
+            padding: 15px 30px;
+            font-size: 20px;
+            background-color: #27ae60;
+            border: none;
+            color: white;
+            cursor: pointer;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s;
+        }
+        .button:hover {
+            background-color: #2ecc71;
+        }
+        .result {
+            margin-top: 20px;
+            font-size: 24px;
+            color: #f39c12;
+        }
+        .balance {
+            margin-top: 10px;
+            font-size: 18px;
+            color: #ecf0f1;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Slot Machine Casino Game</h1>
+
+    <div class="slot-machine">
+        <div class="reel" id="reel1">🍒</div>
+        <div class="reel" id="reel2">🍋</div>
+        <div class="reel" id="reel3">🍊</div>
+    </div>
+
+    <button class="button" id="spinButton">Spin</button>
+
+    <div class="result" id="result">Try your luck!</div>
+    <div class="balance" id="balance">Balance: $100</div>
+
+    <script>
+        // Configuration
+        const reelSymbols = ['🍒', '🍋', '🍊', '🍇', '🍉', '🍓', '🍍', '⭐'];
+        let balance = 100;
+        let isSpinning = false;
+
+        // Elements
+        const spinButton = document.getElementById('spinButton');
+        const reels = [
+            document.getElementById('reel1'),
+            document.getElementById('reel2'),
+            document.getElementById('reel3')
+        ];
+        const resultText = document.getElementById('result');
+        const balanceText = document.getElementById('balance');
+
+        // Spin button click event
+        spinButton.addEventListener('click', spinReels);
+
+        // Spin reels function
+        function spinReels() {
+            if (isSpinning || balance <= 0) return;
+
+            isSpinning = true;
+            balance -= 10;  // Bet amount per spin
+            updateBalance();
+
+            resultText.textContent = "Spinning...";
+
+            const spinPromises = reels.map((reel, index) => spinReel(reel, index));
+            
+            // Wait for all reels to finish spinning and then check the result
+            Promise.all(spinPromises).then(() => {
+                checkWin();
+                isSpinning = false;
+            });
+        }
+
+        // Spin each reel with animation
+        function spinReel(reel, index) {
+            return new Promise(resolve => {
+                let currentSymbol = reelSymbols[Math.floor(Math.random() * reelSymbols.length)];
+                let rotations = Math.floor(Math.random() * 5) + 5;  // Random number of rotations
+
+                let interval = setInterval(() => {
+                    reel.textContent = reelSymbols[Math.floor(Math.random() * reelSymbols.length)];
+                }, 100);  // Change every 100ms
+
+                setTimeout(() => {
+                    clearInterval(interval);
+                    reel.textContent = currentSymbol;  // Final symbol after spin
+                    resolve();
+                }, rotations * 200);  // Adjust speed of reel spinning
+            });
+        }
+
+        // Check if player wins
+        function checkWin() {
+            const symbols = reels.map(reel => reel.textContent);
+            const uniqueSymbols = new Set(symbols);
+
+            if (uniqueSymbols.size === 1) {
+                resultText.textContent = `You win! ${symbols[0]} x3`;
+                balance += 50;  // Win amount
+            } else if (uniqueSymbols.size === 2) {
+                resultText.textContent = `You win! ${symbols[0]} x2`;
+                balance += 20;  // Win amount for 2 matching symbols
+            } else {
+                resultText.textContent = "Sorry, no win. Try again!";
+            }
+
+            updateBalance();
+        }
+
+        // Update balance display
+        function updateBalance() {
+            balanceText.textContent = `Balance: $${balance}`;
+        }
+
+        // Initialize balance
+        updateBalance();
+    </script>
+
+</body>
+</html>
